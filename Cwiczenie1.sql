@@ -82,7 +82,8 @@ AND d.nazwa = 'RoadX';
 
 -- 8. Oblicz pole powierzchni tych części budynku BuildingC i poligonu o współrzędnych 
 -- (4 7, 6 7, 6 8, 4 8, 4 7), które nie są wspólne dla tych dwóch obiektów.
-SELECT ST_Area(ST_SymDifference((SELECT geometria FROM budynki WHERE nazwa = 'BuildingC'), 
-								ST_GeomFromText('POLYGON((4 7, 6 7, 6 8, 4 8, 4 7))', 0)))
+SELECT ST_Area(ST_SymDifference(geometria, ST_GeomFromText('POLYGON((4 7, 6 7, 6 8, 4 8, 4 7))', 0))) AS Area
+FROM budynki 
+WHERE nazwa = 'BuildingC'
 
 
