@@ -2,7 +2,7 @@
 -- pomiędzy 2018 a 2019).
 CREATE TABLE buildingsNew AS (
 	SELECT b19.* FROM t2019_kar_buildings as b19
-	FULL JOIN t2018_kar_buildings as b18 
+	LEFT JOIN t2018_kar_buildings as b18 
 	USING (polygon_id)
 	WHERE b18.polygon_id IS NULL OR NOT b19.geom = b18.geom
 );
@@ -14,11 +14,11 @@ SELECT * FROM buildingsNew;
 -- wybudowanych budynków, które znalezione zostały w zadaniu 1. Policz je wg ich kategorii.
 SELECT pt19.type, COUNT(DISTINCT pt19.*) AS POI_number
 FROM buildingsNew AS b, t2019_kar_poi_table AS pt19 
-FULL JOIN t2018_kar_poi_table AS pt18
+LEFT JOIN t2018_kar_poi_table AS pt18
 USING (poi_id)
-WHERE pt18.poi_id IS NULL AND ST_Contains(ST_Buffer(b.geom, 500), pt19.geom)
+WHERE pt18.poi_id IS NULL AND ST_DWithin(b.geom, pt19.geom, 500)
 GROUP BY pt19.type;
-
+s
 -- 3. Utwórz nową tabelę o nazwie ‘streets_reprojected’, która zawierać będzie dane z tabeli
 -- T2019_KAR_STREETS przetransformowane do układu współrzędnych DHDN.Berlin/Cassini.
 CREATE TABLE streets_reprojected AS (
@@ -56,7 +56,7 @@ SELECT ST_AsText(geom) FROM input_points;
 -- z punktów w tabeli ‘input_points’. Wykorzystaj tabelę T2019_STREET_NODE. Dokonaj
 -- reprojekcji geometrii, aby była zgodna z resztą tabel.
 SELECT * FROM t2019_kar_street_node AS strn
-WHERE ST_Contains(ST_Buffer((SELECT ST_MakeLine(geom) FROM input_points), 200), ST_Transform(strn.geom, 3068));
+WHERE ST_DWithin((SELECT ST_MakeLine(geom) FROM input_points), ST_Transform(strn.geom, 3068), 200);
 						 																					 
 -- 7. Policz jak wiele sklepów sportowych (‘Sporting Goods Store’ - tabela POIs) znajduje się
 -- w odległości 300 m od parków (LAND_USE_A).
