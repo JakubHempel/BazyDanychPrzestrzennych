@@ -1,13 +1,18 @@
 -- 2. Ładowanie danych do tabeli uk_250k
 -- raster2pgsql.exe -s 27700 -N -32767 -t 100x100 -I -C -M -d "C:\Users\kubah\Desktop\AGH zajecia\Bazy danych przestrzennych laborki\Cwiczenia_7\ras250_gb\data\*.tif" uk_250k | psql -U postgres -d cwiczenia7 -h localhost -p 5432
-
 SELECT * FROM uk_250k;
+
+-- Tworzenie indeksu przestrzennego
+CREATE INDEX idx_uk_250k ON uk_250k
+USING gist (ST_ConvexHull(rast));
+
+-- Dodanie constraintów
+SELECT AddRasterConstraints('public'::name, 'uk_250k'::name,'rast'::name);
 
 -- 3. Połączenie wszystkich kafli w mozaikę
 CREATE TABLE uk_250k_union AS
-SELECT ST_Union(ST_Clip(a.rast, b.geom, true))
-FROM uk_250k AS a, national_parks AS b
-WHERE ST_Intersects(b.geom, a.rast) AND b.id = '1';
+SELECT ST_Union(rast)
+FROM uk_250k;
 
 -- 5. Załaduj do bazy danych tabelę reprezentującą granice parków narodowych.
 SELECT * FROM national_parks;
@@ -77,3 +82,4 @@ FROM tmp_out_ndwi;
 -- SELECT lo_unlink(loid)
 -- FROM tmp_out_ndwi; --> Delete the large object.
 
+-- COPY (SELECT ST_AsTiff(rast) FROM lake_district_ndwi) TO 'D:/lake_district_ndwi'
